@@ -1,0 +1,8 @@
+#TEMP dir
+tmp/
+temp/
+invoices/
+pdfs/
+uploads/
+.env
+

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<title>Factura</title>
+		<style>
+			body {
+				width: 210mm;
+				padding: 30px 60px;
+				border: 0px solid #000000;
+				background: #ffffff;
+				margin: 0 auto;
+				text-align: justify;
+				font-family: Arial, Helvetica, sans-serif;
+				font-size: 15px;
+			}
+
+			@page {
+				size: A4;
+			}
+
+			@media print {
+				page-break-after: auto;
+			}
+
+			.footer {
+				height: 20mm;
+				text-align: center;
+				position: relative;
+				bottom: 0;
+				left: 0;
+				width: 100%;
+			}
+
+			.black {
+				padding: 10px 20px;
+				background-color: #000000;
+				color: #ffffff;
+				font-size: 11px;
+			}
+
+			table {
+				width: 100%
+			}
+
+			thead {
+				background-color: #000000;
+				color: #ffffff;
+			}
+
+			.left {
+				float: left;
+				width: 50%
+			}
+
+			.right {
+				float: right;
+				width: 50%;
+				text-align: right;
+			}
+
+			.text-right {
+				text-align: right;
+			}
+
+			.bt-black {
+				border-top: solid 1px #000000;
+			}
+
+			hr {
+				width: 100%;
+				border: none;
+			}
+
+			th,
+			td {
+				padding: 5px 5px;
+			}
+
+			.debt {
+				background-color: #CCCCCC;
+			}
+
+			header p {
+				margin: 5px auto;
+				width: 40%;
+				padding: 5px 0;
+				border: solid 1px #ffffff;
+				text-align: center;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div>
+			<p class="left">
+				<strong>{{.CompanyName}}</strong><br>
+				{{.CompanyAddress}}<br>
+				CIF B86793239
+			</p>
+			<p class="right">
+				<strong>Factura</strong><br>
+				<strong>{{.InvoiceNumber}}</strong>
+			</p>
+		</div>
+		<hr>
+		<div>
+			<p class="left">
+				Facturar a:<br>
+				Nombre: {{.CustomerName}}<br>
+				NIF: {{.CustomerID}}<br>
+				Dirección: {{.CustomerAddress}}<br>
+			</p>
+			<p class="right">Fecha de la factura: {{.InvoiceDate}}</p>
+		</div>
+		<hr>
+		<br><br>
+		<table>
+			<thead>
+				<tr>
+					<th style="width: 55%">Concepto</td>
+					<th>Cantidad</td>
+					<th>Tarifa</td>
+					<th>Total</td>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td>{{.Concept}}</td>
+					<td class="text-right">{{.Quantity}}</td>
+					<td class="text-right">{{.Rate}}</td>
+					<td class="text-right">{{.SubTotal}}</td>
+				</tr>
+				<tr>
+					<td></td>
+					<td></td>
+					<td></td>
+					<td></td>
+				</tr>
+			</tbody>
+			<tfoot>
+				<tr>
+					<td class="bt-black"></td>
+					<td class="bt-black"></td>
+					<td class="bt-black"></td>
+					<td class="bt-black"></td>
+				</tr>
+				<tr>
+					<td></td>
+					<td></td>
+					<td>Subtotal</td>
+					<td class="text-right">{{.SubTotal}}</td>
+				</tr>
+				<tr>
+					<td></td>
+					<td></td>
+					<td>IVA ({{.TaxesPercentage}}%)</td>
+					<td class="text-right">{{.TaxesTotal}}</td>
+				</tr>
+				<tr>
+					<td></td>
+					<td></td>
+					<td></td>
+					<td></td>
+				</tr>
+				<tr>
+					<td></td>
+					<td></td>
+					<td><strong>Total</strong></td>
+					<td class="text-right"><strong>{{.Total}}</strong></td>
+				</tr>
+				<tr>
+					<td></td>
+					<td></td>
+					<td class="debt"><strong>Saldo adeudado</strong></td>
+					<td class="text-right debt"><strong>{{.Total}}</strong></td>
+				</tr>
+			</tfoot>
+		</table>
+	</body>
+
+</html>

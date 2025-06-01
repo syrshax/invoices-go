@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Upload Invoices</title>
+		<style>
+			body {
+				font-family: sans-serif;
+				margin: 40px;
+			}
+
+			form {
+				background: #f9f9f9;
+				padding: 20px;
+				border-radius: 8px;
+				max-width: 500px;
+				margin: auto;
+			}
+
+			label {
+				display: block;
+				margin-bottom: 5px;
+				font-weight: bold;
+			}
+
+			input[type="text"],
+			input[type="date"],
+			input[type="number"],
+			textarea,
+			input[type="file"] {
+				width: calc(100% - 22px);
+				padding: 10px;
+				margin-bottom: 15px;
+				border: 1px solid #ddd;
+				border-radius: 4px;
+			}
+
+			button {
+				background-color: #007bff;
+				color: white;
+				padding: 10px 20px;
+				border: none;
+				border-radius: 5px;
+				cursor: pointer;
+				font-size: 16px;
+			}
+
+			button:hover {
+				background-color: #0056b3;
+			}
+
+			button:disabled {
+				background-color: #6c757d;
+				cursor: not-allowed;
+			}
+
+
+			.download-btn {
+				background-color: #28a745;
+				/* Green for download */
+				color: white;
+				padding: 10px 20px;
+				border: none;
+				border-radius: 5px;
+				cursor: pointer;
+				font-size: 16px;
+				text-decoration: none;
+				/* For the <a> tag */
+				display: inline-block;
+				/* For the <a> tag */
+				margin-top: 15px;
+			}
+
+			.progress-container {
+				background: #f9f9f9;
+				padding: 20px;
+				border-radius: 8px;
+				max-width: 500px;
+				margin: auto;
+
+			}
+
+			.download-btn:hover {
+				background-color: #218838;
+			}
+
+			/* Progress Bar Styles */
+			.progress-container {
+				display: none;
+				margin-top: 20px;
+				background: #f8f9fa;
+				padding: 20px;
+				border-radius: 8px;
+				border: 1px solid #dee2e6;
+				padding: 20px;
+				border-radius: 8px;
+				max-width: 500px;
+			}
+
+			.progress-bar-wrapper {
+				width: 100%;
+				height: 25px;
+				background-color: #e9ecef;
+				border-radius: 12px;
+				overflow: hidden;
+				margin-bottom: 15px;
+			}
+
+			.progress-bar {
+				height: 100%;
+				background: linear-gradient(90deg, #007bff, #0056b3);
+				width: 0%;
+				transition: width 0.3s ease;
+				border-radius: 12px;
+				position: relative;
+			}
+
+			.progress-text {
+				text-align: center;
+				font-weight: bold;
+				margin-bottom: 10px;
+			}
+
+			.progress-steps {
+				font-size: 14px;
+				color: #6c757d;
+			}
+
+			.progress-step {
+				margin: 5px 0;
+				padding: 3px 0;
+			}
+
+			.progress-step.active {
+				color: #007bff;
+				font-weight: bold;
+			}
+
+			.progress-step.completed {
+				color: #28a745;
+			}
+
+			.success-message {
+				display: none;
+				background: #d4edda;
+				color: #155724;
+				padding: 15px;
+				border-radius: 8px;
+				margin-top: 20px;
+				border: 1px solid #c3e6cb;
+			}
+
+			.error-message {
+				display: none;
+				background: #f8d7da;
+				color: #721c24;
+				padding: 15px;
+				border-radius: 8px;
+				margin-top: 20px;
+				border: 1px solid #f5c6cb;
+			}
+		</style>
+	</head>
+
+	<body>
+		<h1>Generador Facturas Selectra Plus CSV</h1>
+		<form id="upload-form" action="/upload" method="post" enctype="multipart/form-data">
+			<label for="csv-file">Sube tu archivo CSV:</label>
+			<input type="file" name="csv-file" id="csv-file" accept=".csv" required><br><br>
+			<h2>Detalles de Factura </h2>
+			<label for="invoice-date">Fecha:</label>
+			<input type="date" id="invoice-date" name="invoice-date" required><br>
+			<label for="type-contract">Tipo de Contrato:</label>
+			<input type="text" id="type-contract" name="type-contract" placeholder="e.g., S.Plus, S.Eco..." required><br>
+			<label for="starting-invoice-number">Numero inicial de factura</label>
+			<input type="number" id="starting-invoice-number" name="starting-invoice-number" value="1" min="1" required><br>
+			<label for="concept">Concepto:</label>
+			<textarea id="concept" name="concept" rows="3" placeholder="Description of services/goods" required></textarea><br>
+			<label for="quantity">Cantidad:</label>
+			<input type="number" id="quantity" name="quantity" value="1" min="1" required><br>
+			<label for="rate">Precio:</label>
+			<input type="number" id="rate" name="rate" step="0.01" value="100.00" min="0" required><br>
+			<label for="taxes">Taxes (%):</label>
+			<input type="number" id="taxes" name="taxes" step="0.01" value="21.00" min="0" required><br>
+			<button type="submit" id="submit-btn">Generar PDFS</button>
+		</form>
+
+		<div class="progress-container" id="progress-container">
+			<div class="progress-text" id="progress-text">Procesando...</div>
+			<div class="progress-bar-wrapper">
+				<div class="progress-bar" id="progress-bar"></div>
+			</div>
+			<div class="progress-steps" id="progress-steps">
+				<div class="progress-step" id="step-1">📄 Reading CSV file...</div>
+				<div class="progress-step" id="step-2">📋 Generating HTML invoices...</div>
+				<div class="progress-step" id="step-3">📄 Converting to PDF...</div>
+				<div class="progress-step" id="step-4">📦 Creating ZIP file...</div>
+				<div class="progress-step" id="step-5">🧹 Cleaning up temporary files...</div>
+			</div>
+			<div id="download-area" style="text-align: center; margin-top: 20px;">
+				<a id="download-button" class="download-btn" style="display: none;">Descargar Facturas</a>
+			</div>
+		</div>
+
+		<div class="success-message" id="success-message"></div>
+
+		<div class="error-message" id="error-message"></div>
+	</body>
+
+</html>
