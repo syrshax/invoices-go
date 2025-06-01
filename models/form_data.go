@@ -9,4 +9,5 @@ type FormValues struct {
 	Taxes             float64
 	TypeContract      string
 	UploadCsvTempPath string
+	FileName          string
 }

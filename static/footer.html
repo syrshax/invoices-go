@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<script>
+			function substitutePdfVariables() {
+
+				function getParameterByName(name) {
+					var match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+					return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+				}
+
+				function substitute(name) {
+					var value = getParameterByName(name);
+					var elements = document.getElementsByClassName(name);
+
+					for (var i = 0; elements && i < elements.length; i++) {
+						elements[i].textContent = value;
+					}
+				}
+
+				['frompage', 'topage', 'page', 'webpage', 'section', 'subsection', 'subsubsection']
+					.forEach(function (param) {
+						substitute(param);
+					});
+			}
+		</script>
+	</head>
+
+	<body onload="substitutePdfVariables()">
+		<div style="padding: 10px 20px; background-color: #000000; color: #ffffff; font-size: 11px;">
+			<p style="margin-bottom: 15px; font-size: 13px;">Gracias por su confianza.</p>
+			<p>PROTECCIÓN DATOS: Reglamento Europeo de Protección de Datos 2016/679 y Ley Orgánica 3/2018 de Protección de Datos Personales y garantía de los derechos digitales: Responsable: SELECTRA
+				(PROFIELECTRA S.L.), C/ Conde de Vilches 20, 28028, Madrid; Finalidad: Venta o prestación del servicio solicitado y realizar la facturación del mismo; Legitimación: Relación
+				contractual y/o consentimiento; Conservación: Sus datos se conservarán mientras se mantenga la relación o durante los años necesarios para cumplir con las obligaciones legales;
+				Destinatarios: Los datos no se cederán salvo que sea necesario para la realización del servicio o por obligación legal; Derechos: Puede ejercer derecho acceso, rectificación,
+				supresión, limitación, portabilidad, oposición y a presentar una reclamación ante la AEPD. Puede consultar información adicional dirigiéndose a la empresa.</p>
+			<p style="text-align: right"><span class="page"></span>/<span class="topage"></span></p>
+		</div>
+	</body>
+
+</html>

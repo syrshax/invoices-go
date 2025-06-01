@@ -24,7 +24,20 @@ func ProcessUpload(f models.FormValues) error {
 		return err
 	}
 
-	GenerateHTMLInvoices(csv, f)
+	err = GenerateHTMLInvoices(csv, f)
+	if err != nil {
+		return err
+	}
+
+	err = ConvertHTMLToPDF("invoices")
+	if err != nil {
+		return err
+	}
+
+	err = GenerateZip("pdfs", "invoices_"+f.FileName+".zip")
+	if err != nil {
+		return err
+	}
 
 	fmt.Println(csv)
 

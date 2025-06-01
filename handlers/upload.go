@@ -30,8 +30,8 @@ func Upload(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, "Error creating directory: "+err.Error(), http.StatusInternalServerError)
 	}
-
-	filePath := filepath.Join("uploads", header.Filename)
+	fileName := header.Filename
+	filePath := filepath.Join("uploads", fileName)
 	err = internal.GenerateTempCSVFile(filePath, file)
 	if err != nil {
 		http.Error(w, "Error generating temp CSV file: "+err.Error(), http.StatusInternalServerError)
@@ -46,7 +46,11 @@ func Upload(w http.ResponseWriter, r *http.Request) {
 		Taxes:             taxes,
 		TypeContract:      r.FormValue("type-contract"),
 		UploadCsvTempPath: filePath, //What if multiple files same name?
+		FileName:          fileName,
 	}
 
 	go internal.ProcessUpload(f)
+
+	w.Write([]byte("Request accepted, wait for download."))
+	w.WriteHeader(http.StatusAccepted)
 }
