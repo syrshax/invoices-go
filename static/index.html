@@ -56,7 +56,6 @@
 				cursor: not-allowed;
 			}
 
-
 			.download-btn {
 				background-color: #28a745;
 				/* Green for download */
@@ -79,7 +78,6 @@
 				border-radius: 8px;
 				max-width: 500px;
 				margin: auto;
-
 			}
 
 			.download-btn:hover {
@@ -150,6 +148,9 @@
 				border-radius: 8px;
 				margin-top: 20px;
 				border: 1px solid #c3e6cb;
+				max-width: 500px;
+				margin-left: auto;
+				margin-right: auto;
 			}
 
 			.error-message {
@@ -160,13 +161,80 @@
 				border-radius: 8px;
 				margin-top: 20px;
 				border: 1px solid #f5c6cb;
+				max-width: 500px;
+				margin-left: auto;
+				margin-right: auto;
+			}
+
+			.info-message {
+				display: none;
+				background: #d1ecf1;
+				color: #0c5460;
+				padding: 15px;
+				border-radius: 8px;
+				margin-top: 20px;
+				border: 1px solid #bee5eb;
+				max-width: 500px;
+				margin-left: auto;
+				margin-right: auto;
+			}
+
+			.job-status-container {
+				display: none;
+				background: #f8f9fa;
+				padding: 20px;
+				border-radius: 8px;
+				max-width: 500px;
+				margin: 20px auto;
+				border: 1px solid #dee2e6;
+			}
+
+			.job-info {
+				margin-bottom: 15px;
+				padding: 10px;
+				background: white;
+				border-radius: 5px;
+				border: 1px solid #e9ecef;
+			}
+
+			.job-info strong {
+				color: #495057;
+			}
+
+			.status-badge {
+				display: inline-block;
+				padding: 4px 8px;
+				border-radius: 4px;
+				font-size: 12px;
+				font-weight: bold;
+				text-transform: uppercase;
+			}
+
+			.status-pending {
+				background-color: #fff3cd;
+				color: #856404;
+			}
+
+			.status-processing {
+				background-color: #d1ecf1;
+				color: #0c5460;
+			}
+
+			.status-finished {
+				background-color: #d4edda;
+				color: #155724;
+			}
+
+			.status-canceled {
+				background-color: #f8d7da;
+				color: #721c24;
 			}
 		</style>
 	</head>
 
 	<body>
 		<h1>Generador Facturas Selectra Plus CSV</h1>
-		<form id="upload-form" action="/upload" method="post" enctype="multipart/form-data">
+		<form id="upload-form" enctype="multipart/form-data">
 			<label for="csv-file">Sube tu archivo CSV:</label>
 			<input type="file" name="csv-file" id="csv-file" accept=".csv" required><br><br>
 			<h2>Detalles de Factura </h2>
@@ -187,6 +255,32 @@
 			<button type="submit" id="submit-btn">Generar PDFS</button>
 		</form>
 
+		<div class="info-message" id="info-message"></div>
+		<div class="success-message" id="success-message"></div>
+		<div class="error-message" id="error-message"></div>
+
+		<div class="job-status-container" id="job-status-container">
+			<h3>Estado del Trabajo</h3>
+			<div class="job-info">
+				<strong>Job ID:</strong> <span id="job-id-display">-</span>
+			</div>
+			<div class="job-info">
+				<strong>Estado:</strong> <span id="job-status-display" class="status-badge">-</span>
+			</div>
+			<div class="job-info">
+				<strong>Creado:</strong> <span id="job-created-display">-</span>
+			</div>
+			<div class="job-info">
+				<strong>Actualizado:</strong> <span id="job-updated-display">-</span>
+			</div>
+			<div class="job-info" id="job-error-container" style="display: none;">
+				<strong>Error:</strong> <span id="job-error-display">-</span>
+			</div>
+			<div style="text-align: center; margin-top: 20px;">
+				<button id="download-button" class="download-btn" style="display: none;">Descargar Facturas</button>
+			</div>
+		</div>
+
 		<div class="progress-container" id="progress-container">
 			<div class="progress-text" id="progress-text">Procesando...</div>
 			<div class="progress-bar-wrapper">
@@ -199,14 +293,158 @@
 				<div class="progress-step" id="step-4">📦 Creating ZIP file...</div>
 				<div class="progress-step" id="step-5">🧹 Cleaning up temporary files...</div>
 			</div>
-			<div id="download-area" style="text-align: center; margin-top: 20px;">
-				<a id="download-button" class="download-btn" style="display: none;">Descargar Facturas</a>
-			</div>
 		</div>
 
-		<div class="success-message" id="success-message"></div>
+		<script>
+			let currentJobId = null;
+			let statusCheckInterval = null;
 
-		<div class="error-message" id="error-message"></div>
+			document.getElementById('upload-form').addEventListener('submit', async function (e) {
+				e.preventDefault(); // Prevent default form submission
+
+				const submitBtn = document.getElementById('submit-btn');
+				const formData = new FormData(this);
+
+				submitBtn.disabled = true;
+				submitBtn.textContent = 'Enviando...';
+
+				hideAllMessages();
+
+				try {
+					const response = await fetch('/upload', {
+						method: 'POST',
+						body: formData
+					});
+
+					const responseData = await response.json();
+
+					// Show server response info
+					showInfoMessage(`
+						<strong>Respuesta del servidor:</strong><br>
+						Status Code: ${response.status}<br>
+						${responseData.message || 'Procesando solicitud...'}<br>
+						${responseData.jobId ? `Job ID: ${responseData.jobId}` : ''}
+					`);
+
+					if (response.ok && responseData.jobId) {
+						currentJobId = responseData.jobId;
+						startJobStatusPolling();
+					} else {
+						showErrorMessage(`Error: ${responseData.message || 'Unknown error occurred'}`);
+					}
+
+				} catch (error) {
+					showErrorMessage(`Error de conexión: ${error.message}`);
+				} finally {
+					// Re-enable submit button
+					submitBtn.disabled = false;
+					submitBtn.textContent = 'Generar PDFS';
+				}
+			});
+
+			async function checkJobStatus() {
+				if (!currentJobId) return;
+
+				try {
+					const response = await fetch(`/jobs/${currentJobId}/status`);
+					const jobData = await response.json();
+
+					if (response.ok && jobData.jobId) {
+						updateJobStatusDisplay(jobData);
+
+						// If job is finished, show download button and stop polling
+						if (jobData.status === 'finished') {
+							stopJobStatusPolling();
+							showDownloadButton();
+							showSuccessMessage('¡Proceso completado! Tu archivo está listo para descargar.');
+						} else if (jobData.status === 'canceled') {
+							stopJobStatusPolling();
+							showErrorMessage(`Error en el procesamiento: ${jobData.msgError || 'Unknown error'}`);
+						}
+					} else {
+						console.error('Error checking job status:', jobData);
+					}
+				} catch (error) {
+					console.error('Error fetching job status:', error);
+				}
+			}
+
+			function startJobStatusPolling() {
+				document.getElementById('job-status-container').style.display = 'block';
+
+				checkJobStatus();
+
+				statusCheckInterval = setInterval(checkJobStatus, 2000);
+			}
+
+			function stopJobStatusPolling() {
+				if (statusCheckInterval) {
+					clearInterval(statusCheckInterval);
+					statusCheckInterval = null;
+				}
+			}
+
+			function updateJobStatusDisplay(jobData) {
+				document.getElementById('job-id-display').textContent = jobData.jobId || '-';
+
+				const statusElement = document.getElementById('job-status-display');
+				statusElement.textContent = jobData.status || '-';
+				statusElement.className = `status-badge status-${jobData.status}`;
+
+				document.getElementById('job-created-display').textContent =
+					jobData.createdAt ? new Date(jobData.createdAt).toLocaleString() : '-';
+				document.getElementById('job-updated-display').textContent =
+					jobData.updatedAt ? new Date(jobData.updatedAt).toLocaleString() : '-';
+
+				// Show/hide error container
+				const errorContainer = document.getElementById('job-error-container');
+				const errorDisplay = document.getElementById('job-error-display');
+				if (jobData.msgError && jobData.msgError.trim() !== '') {
+					errorDisplay.textContent = jobData.msgError;
+					errorContainer.style.display = 'block';
+				} else {
+					errorContainer.style.display = 'none';
+				}
+			}
+
+			function showDownloadButton() {
+				const downloadBtn = document.getElementById('download-button');
+				downloadBtn.style.display = 'inline-block';
+				downloadBtn.onclick = function () {
+					window.location.href = `/download/${currentJobId}/`;
+				};
+
+			}
+
+			function showInfoMessage(message) {
+				const infoMsg = document.getElementById('info-message');
+				infoMsg.innerHTML = message;
+				infoMsg.style.display = 'block';
+			}
+
+			function showSuccessMessage(message) {
+				const successMsg = document.getElementById('success-message');
+				successMsg.textContent = message;
+				successMsg.style.display = 'block';
+			}
+
+			function showErrorMessage(message) {
+				const errorMsg = document.getElementById('error-message');
+				errorMsg.textContent = message;
+				errorMsg.style.display = 'block';
+			}
+
+			function hideAllMessages() {
+				document.getElementById('info-message').style.display = 'none';
+				document.getElementById('success-message').style.display = 'none';
+				document.getElementById('error-message').style.display = 'none';
+			}
+
+			// Clean up interval when page is unloaded
+			window.addEventListener('beforeunload', function () {
+				stopJobStatusPolling();
+			});
+		</script>
 	</body>
 
 </html>

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"net/http"
 	"path/filepath"
 	"strconv"
@@ -49,8 +50,22 @@ func Upload(w http.ResponseWriter, r *http.Request) {
 		FileName:          fileName,
 	}
 
-	go internal.ProcessUpload(f)
+	job := internal.CreateJob()
 
-	w.Write([]byte("Request accepted, wait for download."))
+	go func(id string) {
+		internal.UpdateJobStatus(id, internal.Processing, "")
+		err := internal.ProcessUpload(f, id)
+		if err != nil {
+			internal.UpdateJobStatus(id, internal.Canceled, err.Error())
+			return
+		}
+
+		internal.UpdateJobStatus(id, internal.Finished, "")
+	}(job.ID)
+
 	w.WriteHeader(http.StatusAccepted)
+	json.NewEncoder(w).Encode(map[string]string{
+		"jobId":   job.ID,
+		"message": "Job started, use this ID to check status",
+	})
 }

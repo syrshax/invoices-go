@@ -8,7 +8,7 @@ import (
 	"github.com/syrshax/invoice-go-v2/models"
 )
 
-func ProcessUpload(f models.FormValues) error {
+func ProcessUpload(f models.FormValues, jobID string) error {
 	//We delete the uploaded temp file csv...
 	defer func() {
 		err := os.Remove(f.UploadCsvTempPath)
@@ -34,10 +34,12 @@ func ProcessUpload(f models.FormValues) error {
 		return err
 	}
 
-	err = GenerateZip("pdfs", "invoices_"+f.FileName+".zip")
+	zipfilepath := "invoices_" + f.FileName + ".zip"
+	err = GenerateZip("pdfs", zipfilepath)
 	if err != nil {
 		return err
 	}
+	UpdateJobPath(jobID, zipfilepath)
 
 	fmt.Println(csv)
 

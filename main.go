@@ -1,10 +1,9 @@
 package main
 
 import (
-	"log"
-
 	"github.com/syrshax/invoice-go-v2/handlers"
 	"github.com/syrshax/invoice-go-v2/server"
+	"log"
 )
 
 type Application struct {
@@ -19,5 +18,6 @@ func main() {
 
 	app.server.AddHandler("/", handlers.Home)
 	app.server.AddHandler("/upload", handlers.Upload)
+	app.server.AddHandler("/jobs/", handlers.JobStatus)
 	app.server.Run()
 }
