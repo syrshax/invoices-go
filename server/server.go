@@ -11,7 +11,6 @@ type Server struct {
 	Mux  http.ServeMux
 }
 
-// This works like a staticmethod. You create a Server with this function.
 func NewServer(port string) *Server {
 	return &Server{
 		port: port,

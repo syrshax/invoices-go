@@ -46,7 +46,7 @@ func Upload(w http.ResponseWriter, r *http.Request) {
 		Rate:              rate,
 		Taxes:             taxes,
 		TypeContract:      r.FormValue("type-contract"),
-		UploadCsvTempPath: filePath, //What if multiple files same name?
+		UploadCsvTempPath: filePath, //NOTE: What if multiple files same name?
 		FileName:          fileName,
 	}
 
