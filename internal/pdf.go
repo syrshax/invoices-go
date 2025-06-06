@@ -9,19 +9,21 @@ import (
 	"sync"
 )
 
-func ConvertHTMLToPDF(htmlpath string) error {
+func ConvertHTMLToPDF(jobID string) error {
 	_, err := exec.LookPath("wkhtmltopdf")
 	if err != nil {
 		return fmt.Errorf("wkhtmltopdf not found. Please install it first: %v", err)
 	}
 
-	files, err := filepath.Glob(filepath.Join(htmlpath, "*.html"))
+	files, err := filepath.Glob(filepath.Join("invoices", jobID+"_invoices", "*.html"))
 	if err != nil {
 		return fmt.Errorf("could not read HTML files: %v", err)
 	}
 
+	fmt.Println("FILES!!!!", files)
+
 	if len(files) == 0 {
-		return fmt.Errorf("no HTML files found in %s", htmlpath)
+		return fmt.Errorf("no HTML files found in %s", jobID+"_invoices")
 	}
 
 	headerTemplatePath, err := filepath.Abs(filepath.Join("static", "header.html"))
@@ -36,12 +38,16 @@ func ConvertHTMLToPDF(htmlpath string) error {
 	var wg sync.WaitGroup
 
 	for _, htmlFile := range files {
+		fmt.Println(htmlFile, files)
 		wg.Add(1)
 
 		go func(htmlToConvert string) {
 			defer wg.Done()
 			baseName := strings.TrimSuffix(filepath.Base(htmlToConvert), ".html")
-			pdfFile := filepath.Join("pdfs", baseName+".pdf")
+			pdfFile := filepath.Join("pdfs", jobID+"_pdfs", baseName+".pdf")
+
+			fmt.Println("BASE NAME", baseName)
+			fmt.Println("PDF FILE", pdfFile)
 
 			cmd := exec.Command("wkhtmltopdf",
 				"--page-size", "A4",
@@ -54,6 +60,7 @@ func ConvertHTMLToPDF(htmlpath string) error {
 				"--header-html", headerTemplatePath,
 				"--footer-html", footerTemplatePath,
 				"--enable-smart-shrinking",
+				"--enable-local-file-access",
 				htmlToConvert,
 				pdfFile,
 			)

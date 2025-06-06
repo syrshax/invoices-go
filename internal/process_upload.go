@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path"
+	"path/filepath"
 
 	"github.com/syrshax/invoice-go-v2/models"
 )
@@ -16,7 +18,6 @@ func ProcessUpload(f models.FormValues, jobID string) error {
 			log.Printf("Couldnt delete file: %v \n", f.UploadCsvTempPath)
 		}
 
-		// _ = os.RemoveAll("invoices")
 	}()
 
 	csv, err := ReadCSV(f.UploadCsvTempPath)
@@ -24,24 +25,27 @@ func ProcessUpload(f models.FormValues, jobID string) error {
 		return err
 	}
 
-	err = GenerateHTMLInvoices(csv, f)
+	err = GenerateHTMLInvoices(csv, f, jobID)
 	if err != nil {
 		return err
 	}
 
-	err = ConvertHTMLToPDF("invoices")
+	err = ConvertHTMLToPDF(jobID)
 	if err != nil {
 		return err
 	}
 
-	zipfilepath := "invoices_" + f.FileName + ".zip"
-	err = GenerateZip("pdfs", zipfilepath)
+	pdfDirectory := filepath.Join("pdfs", jobID+"_pdfs")
+	zipDir := path.Join("zipfiles", jobID+"_zipfiles")
+	err = GenerateZip(pdfDirectory, zipDir, jobID)
 	if err != nil {
 		return err
 	}
-	UpdateJobPath(jobID, zipfilepath)
+	UpdateJobPath(jobID, zipDir)
 
-	fmt.Println(csv)
+	for _, c := range csv {
+		fmt.Println(c)
+	}
 
 	return nil
 }

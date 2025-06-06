@@ -12,7 +12,7 @@ type InvoiceData struct {
 	InvoiceDate     string
 	InvoiceNumber   string
 	Quantity        float64
-	Rate            float64
+	Rate            string
 	SubTotal        string
 	TaxesPercentage float64
 	TaxesTotal      string

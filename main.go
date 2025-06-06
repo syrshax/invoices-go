@@ -19,5 +19,6 @@ func main() {
 	app.server.AddHandler("/", handlers.Home)
 	app.server.AddHandler("/upload", handlers.Upload)
 	app.server.AddHandler("/jobs/", handlers.JobStatus)
+	app.server.AddHandler("/download/", handlers.Download)
 	app.server.Run()
 }

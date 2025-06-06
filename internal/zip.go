@@ -4,12 +4,16 @@ import (
 	"archive/zip"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 )
 
-func GenerateZip(pdfdir string, zipfilename string) error {
-	zipFile, err := os.Create(zipfilename)
+func GenerateZip(pdfdir string, zipdir string, jobID string) error {
+	if err := os.MkdirAll(zipdir, os.ModePerm); err != nil {
+		log.Fatalf("could not create zip directory: %v", err)
+	}
+	zipFile, err := os.Create(filepath.Join(zipdir, jobID+".zip"))
 	if err != nil {
 		return fmt.Errorf("could not create ZIP file: %v", err)
 	}

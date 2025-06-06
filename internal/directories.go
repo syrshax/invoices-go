@@ -1,25 +1,45 @@
 package internal
 
-import "os"
+import (
+	"os"
+	"path/filepath"
+)
 
-// It creates uploads, pdfs and invoices directories empty ready for use.
-func CreateInternalDirectories() error {
+func CreateInternalDirectories(s string) error {
 	err := os.MkdirAll("uploads", 0775)
 	if err != nil {
 		return err
 	}
-	err = os.MkdirAll("pdfs", 0775)
+	err = os.MkdirAll(filepath.Join("pdfs", s+"_pdfs"), 0775)
 	if err != nil {
 		return err
 	}
 
-	err = os.MkdirAll("invoices", 0775)
+	err = os.MkdirAll(filepath.Join("invoices", s+"_invoices"), 0775)
+	if err != nil {
+		return err
+	}
+
+	err = os.MkdirAll("zipfiles", 0775)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func CleaningFiles() error {
+func CleaningFiles(s string) error {
+	err := os.RemoveAll(filepath.Join("pdfs", s+"_pdfs"))
+	if err != nil {
+		return err
+	}
+	err = os.RemoveAll(filepath.Join("invoices", s+"_invoices"))
+	if err != nil {
+		return err
+	}
+	err = os.RemoveAll(filepath.Join("zipfiles", s+"_zipfiles"))
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

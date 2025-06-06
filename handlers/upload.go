@@ -27,7 +27,9 @@ func Upload(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	err = internal.CreateInternalDirectories()
+	job := internal.CreateJob()
+
+	err = internal.CreateInternalDirectories(job.ID)
 	if err != nil {
 		http.Error(w, "Error creating directory: "+err.Error(), http.StatusInternalServerError)
 	}
@@ -49,8 +51,6 @@ func Upload(w http.ResponseWriter, r *http.Request) {
 		UploadCsvTempPath: filePath, //NOTE: What if multiple files same name?
 		FileName:          fileName,
 	}
-
-	job := internal.CreateJob()
 
 	go func(id string) {
 		internal.UpdateJobStatus(id, internal.Processing, "")

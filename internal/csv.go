@@ -25,11 +25,11 @@ func ReadCSV(filepath string) ([]CSVRow, error) {
 
 	var rows []CSVRow
 
-	idx := 1
 	if len(records) <= 1 {
 		return rows, nil
 	}
 
+	idx := 1
 	for i := idx; i < len(records); i++ {
 		r := records[i]
 		row := CSVRow{}
